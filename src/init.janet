@@ -103,11 +103,12 @@
                   :array (* "*" (lenprefix (* (number :d+) :crlf) :type))
                   :blob-error (/ (% (* "!" (lenprefix (* (number :d+) :crlf) (<- 1)) :crlf)) ,(fn [e] (tuple :berr ;(peg/match '(* (<- (some (range "AZ"))) :s (<- (to -1))) e))))
                   :verbatim-string (/ (% (* "=" (lenprefix (* (number :d+) :crlf) (<- 1)) :crlf)) ,(fn [e] (tuple :vstr ;(peg/match '(* (<- (3 :w)) ":" (<- (to -1))) e))))
+                  :map (/ (* "%" (lenprefix (/ (* (number :d+) :crlf) ,(fn [n] (* n 2))) :type)) ,(fn [& a] (table ;a)))
                   :aggregate (choice
                                :array
                                :blob-error
                                :verbatim-string
-                               # :map
+                               :map
                                # :attribute
                                # :set
                                # :push

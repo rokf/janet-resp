@@ -27,3 +27,5 @@
 (test (resp/decode "!9\r\nERR error\r\n") @[[:berr "ERR" "error"]])
 
 (test (resp/decode "=14\r\nmkd:**STRONG**\r\n") @[[:vstr "mkd" "**STRONG**"]])
+
+(test (resp/decode "%2\r\n+first\r\n:1\r\n+second\r\n:2\r\n") @[@{"first" 1 "second" 2}])
