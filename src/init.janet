@@ -83,23 +83,23 @@
      (fn [i]
        (error (string "don't know how to encode element of type" (type i))))) input))
 
-(def- resp3-peg '{:crlf "\r\n"
+(def- resp3-peg ~{:crlf "\r\n"
                   :simple-string (* "+" (<- (to :crlf)) :crlf)
-                  # :simple-error (* "-" (capture (some (not :crlf))) :crlf)
-                  # :integer (* ":" (number (some (not :crlf))) :crlf)
-                  # :null (* (/ (capture "_") nil) :crlf)
-                  # :double (* "," (number (some (not :crlf))) :crlf)
-                  # :boolean (* "#" (+ (/ (<- "t") true) (/ (<- "f") false)) :crlf)
-                  # :big-number (* "(" (number (some (not :crlf))) :crlf)
+                  :simple-error (/ (* "-" (<- (some (range "AZ"))) :s (<- (to :crlf)) :crlf) ,(fn [code message] (tuple :err code message)))
+                  :integer (* ":" (number (to :crlf)) :crlf)
+                  :null (* (/ (<- "_") nil) :crlf)
+                  :double (* "," (number (to :crlf)) :crlf)
+                  :boolean (* "#" (+ (/ (<- "t") true) (/ (<- "f") false)) :crlf)
+                  :big-number (* "(" (number (to :crlf)) :crlf) # will need an external library for proper support?
                   :simple (choice
-                            # :big-number
-                            # :simple-error
-                            # :integer
-                            # :null
-                            # :boolean
-                            # :double
+                            :big-number
+                            :simple-error
+                            :integer
+                            :null
+                            :boolean
+                            :double
                             :simple-string)
-                  :blob-string (* "$" (lenprefix (* (number :d+) :crlf) (<- (to :crlf))) :crlf)
+                  :blob-string (% (* "$" (lenprefix (* (number :d+) :crlf) (<- 1)) :crlf))
                   :array (* "*" (lenprefix (* (number :d+) :crlf) :type))
                   :aggregate (choice
                                :array
