@@ -23,3 +23,7 @@
 (test (resp/decode "(812738712387123\r\n") @[812738712387123])
 
 (test (resp/decode "*3\r\n$3\r\nSET\r\n+age\r\n:35\r\n") @["SET" "age" 35])
+
+(test (resp/decode "!9\r\nERR error\r\n") @[[:berr "ERR" "error"]])
+
+(test (resp/decode "=14\r\nmkd:**STRONG**\r\n") @[[:vstr "mkd" "**STRONG**"]])
