@@ -75,7 +75,7 @@
      :tuple encode-array
      :table encode-map
      :struct encode-map
-     :string encode-simple-string
+     :string encode-blob-string
      :buffer (fn [i]
                (encode-blob-string (string i)))
      :symbol encode-simple-string
@@ -83,5 +83,35 @@
      (fn [i]
        (error (string "don't know how to encode element of type" (type i))))) input))
 
+(def- resp3-peg '{:crlf "\r\n"
+                  :simple-string (* "+" (<- (to :crlf)) :crlf)
+                  # :simple-error (* "-" (capture (some (not :crlf))) :crlf)
+                  # :integer (* ":" (number (some (not :crlf))) :crlf)
+                  # :null (* (/ (capture "_") nil) :crlf)
+                  # :double (* "," (number (some (not :crlf))) :crlf)
+                  # :boolean (* "#" (+ (/ (<- "t") true) (/ (<- "f") false)) :crlf)
+                  # :big-number (* "(" (number (some (not :crlf))) :crlf)
+                  :simple (choice
+                            # :big-number
+                            # :simple-error
+                            # :integer
+                            # :null
+                            # :boolean
+                            # :double
+                            :simple-string)
+                  :blob-string (* "$" (lenprefix (* (number :d+) :crlf) (<- (to :crlf))) :crlf)
+                  :array (* "*" (lenprefix (* (number :d+) :crlf) :type))
+                  :aggregate (choice
+                               :array
+                               # :blob-error
+                               # :verbatim-string
+                               # :map
+                               # :attribute
+                               # :set
+                               # :push
+                               :blob-string)
+                  :type (choice :simple :aggregate)
+                  :main (some :type)})
+
 (defn decode [input]
-  {})
+  (peg/match resp3-peg input))

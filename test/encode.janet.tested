@@ -1,5 +1,0 @@
-(use judge)
-
-(import ../src :prefix "resp/")
-
-(test (resp/encode {:hello "World!"}) "%1\r\n+hello\r\n+World!\r\n")
