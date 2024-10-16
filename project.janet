@@ -6,7 +6,7 @@
   :version "0.0.1"
   :url "https://github.com/rokf/janet-resp"
   :repo "git+https://github.com/rokf/janet-resp"
-  :dependencies ["spork"])
+  :dependencies [])
 
 (declare-source
   :prefix "resp"

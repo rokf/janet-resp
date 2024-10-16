@@ -6,7 +6,7 @@
 
 (test (resp/decode "+hello\r\n") @["hello"])
 
-(test (resp/decode "*2\r\n+hello\r\n+world\r\n") @["hello" "world"])
+(test (resp/decode "*2\r\n+hello\r\n+world\r\n") @[@["hello" "world"]])
 
 (test (resp/decode "$5\r\nhello\r\n") @["hello"])
 
@@ -18,14 +18,16 @@
 
 (test (resp/decode ",-30.49\r\n") @[-30.49])
 
-(test (resp/decode "*2\r\n#t\r\n#f\r\n") @[true false])
+(test (resp/decode "*2\r\n#t\r\n#f\r\n") @[@[true false]])
 
 (test (resp/decode "(812738712387123\r\n") @[812738712387123])
 
-(test (resp/decode "*3\r\n$3\r\nSET\r\n+age\r\n:35\r\n") @["SET" "age" 35])
+(test (resp/decode "*3\r\n$3\r\nSET\r\n+age\r\n:35\r\n") @[@["SET" "age" 35]])
 
 (test (resp/decode "!9\r\nERR error\r\n") @[[:berr "ERR" "error"]])
 
 (test (resp/decode "=14\r\nmkd:**STRONG**\r\n") @[[:vstr "mkd" "**STRONG**"]])
 
 (test (resp/decode "%2\r\n+first\r\n:1\r\n+second\r\n:2\r\n") @[@{"first" 1 "second" 2}])
+
+(test (resp/decode "*3\r\n$3\r\nset\r\n$5\r\ncolor\r\n*3\r\n:255\r\n:100\r\n:50\r\n") @[@["set" "color" @[255 100 50]]])
