@@ -83,38 +83,38 @@
      (fn [i]
        (error (string "don't know how to encode element of type" (type i))))) input))
 
-(def- resp3-peg ~{:crlf "\r\n"
-                  :simple-string (* "+" (<- (to :crlf)) :crlf)
-                  :simple-error (/ (* "-" (<- (some (range "AZ"))) :s (<- (to :crlf)) :crlf) ,(fn [code message] (tuple :err code message)))
-                  :integer (* ":" (number (to :crlf)) :crlf)
-                  :null (* (/ (<- "_") nil) :crlf)
-                  :double (* "," (number (to :crlf)) :crlf)
-                  :boolean (* "#" (+ (/ (<- "t") true) (/ (<- "f") false)) :crlf)
-                  :big-number (* "(" (number (to :crlf)) :crlf) # will need an external library for proper support?
-                  :simple (choice
-                            :big-number
-                            :simple-error
-                            :integer
-                            :null
-                            :boolean
-                            :double
-                            :simple-string)
-                  :blob-string (% (* "$" (lenprefix (* (number :d+) :crlf) (<- 1)) :crlf))
-                  :array (* "*" (group (lenprefix (* (number :d+) :crlf) :type)))
-                  :blob-error (/ (% (* "!" (lenprefix (* (number :d+) :crlf) (<- 1)) :crlf)) ,(fn [e] (tuple :berr ;(peg/match '(* (<- (some (range "AZ"))) :s (<- (to -1))) e))))
-                  :verbatim-string (/ (% (* "=" (lenprefix (* (number :d+) :crlf) (<- 1)) :crlf)) ,(fn [e] (tuple :vstr ;(peg/match '(* (<- (3 :w)) ":" (<- (to -1))) e))))
-                  :map (/ (* "%" (lenprefix (/ (* (number :d+) :crlf) ,(fn [n] (* n 2))) :type)) ,(fn [& a] (table ;a)))
-                  :aggregate (choice
-                               :array
-                               :blob-error
-                               :verbatim-string
-                               :map
-                               # :attribute
-                               # :set
-                               # :push
-                               :blob-string)
-                  :type (choice :simple :aggregate)
-                  :main (some :type)})
+(def- resp3-peg (peg/compile ~{:crlf "\r\n"
+                               :simple-string (* "+" (<- (to :crlf)) :crlf)
+                               :simple-error (/ (* "-" (<- (some (range "AZ"))) :s (<- (to :crlf)) :crlf) ,(fn [code message] (tuple :err code message)))
+                               :integer (* ":" (number (to :crlf)) :crlf)
+                               :null (* (/ (<- "_") nil) :crlf)
+                               :double (* "," (number (to :crlf)) :crlf)
+                               :boolean (* "#" (+ (/ (<- "t") true) (/ (<- "f") false)) :crlf)
+                               :big-number (* "(" (number (to :crlf)) :crlf) # will need an external library for proper support?
+                               :simple (choice
+                                         :big-number
+                                         :simple-error
+                                         :integer
+                                         :null
+                                         :boolean
+                                         :double
+                                         :simple-string)
+                               :blob-string (% (* "$" (lenprefix (* (number :d+) :crlf) (<- 1)) :crlf))
+                               :array (* "*" (group (lenprefix (* (number :d+) :crlf) :type)))
+                               :blob-error (/ (% (* "!" (lenprefix (* (number :d+) :crlf) (<- 1)) :crlf)) ,(fn [e] (tuple :berr ;(peg/match '(* (<- (some (range "AZ"))) :s (<- (to -1))) e))))
+                               :verbatim-string (/ (% (* "=" (lenprefix (* (number :d+) :crlf) (<- 1)) :crlf)) ,(fn [e] (tuple :vstr ;(peg/match '(* (<- (3 :w)) ":" (<- (to -1))) e))))
+                               :map (/ (* "%" (lenprefix (/ (* (number :d+) :crlf) ,(fn [n] (* n 2))) :type)) ,(fn [& a] (table ;a)))
+                               :aggregate (choice
+                                            :array
+                                            :blob-error
+                                            :verbatim-string
+                                            :map
+                                            # :attribute
+                                            # :set
+                                            # :push
+                                            :blob-string)
+                               :type (choice :simple :aggregate)
+                               :main (some :type)}))
 
 (defn decode [input]
   (peg/match resp3-peg input))
